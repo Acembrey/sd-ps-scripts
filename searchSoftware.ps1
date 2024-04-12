@@ -1,37 +1,24 @@
-function Search-Directory {
-    param (
-        [string]$Path,
-        [int]$Depth,
-        [string]$Keyword
-    )
+do {
+    $labPaths = Get-Content ".\labPaths.txt" 
+    $keyword = Read-Host "What are you looking for?" 
     
-    # Get directories at the current level
-    $directories = Get-ChildItem -Path $Path -Directory
+    $index = 0 
+    $array = @() 
 
-    # Search for directories containing the keyword
-    $matchingDirectories = $directories | Where-Object { $_.Name -like "*$Keyword*" }
-
-    # Output matching directories
-    foreach ($dir in $matchingDirectories) {
-        Write-Output $dir.FullName
-    }
-
-    # Check recursion depth
-    if ($Depth -gt 1) {
-        # Recursively search subdirectories
-        foreach ($dir in $directories) {
-            Search-Directory -Path $dir.FullName -Depth ($Depth - 1) -Keyword $Keyword
+    foreach($lab in $labPaths){
+        $matches = Get-ChildItem -Recurse -Depth 1 $lab | Where-Object { $_.FullName -like "*$keyword*"} 
+        
+        foreach($match in $matches){
+            $output = "$index. $($match.FullName)" 
+            $array += $match.FullName  
+            Write-Host $output
+            $index++ 
         }
     }
-}
 
-# Prompt user to enter a keyword
-$Keyword = Read-Host "Enter the keyword to search for"
+    $searchAgain = Read-Host "Would you like to search again? (Y/N)"
 
-# Read paths from the text file
-$Labs = Get-Content ".\labs.txt"
-
-# Loop through each path and search for the keyword
-foreach ($path in $Labs) {
-    Search-Directory -Path $path -Depth 3 -Keyword $Keyword
-}
+    if($searchAgain -eq "N"){
+        exit
+    }
+} while ($searchAgain -eq "Y")
